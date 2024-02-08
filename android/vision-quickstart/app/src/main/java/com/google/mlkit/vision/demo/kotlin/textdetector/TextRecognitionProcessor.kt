@@ -21,12 +21,19 @@ import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.demo.GraphicOverlay
+import com.google.mlkit.vision.demo.Response1
+import com.google.mlkit.vision.demo.RetrofitService
 import com.google.mlkit.vision.demo.kotlin.VisionProcessorBase
 import com.google.mlkit.vision.demo.preference.PreferenceUtils
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.TextRecognizerOptionsInterface
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 /** Processor for the text detector demo. */
 class TextRecognitionProcessor(
@@ -51,6 +58,7 @@ class TextRecognitionProcessor(
   override fun onSuccess(text: Text, graphicOverlay: GraphicOverlay) {
     Log.d(TAG, "On-device Text detection successful")
     logExtrasForTesting(text)
+    notifyToServer(text)
     graphicOverlay.add(
       TextGraphic(
         graphicOverlay,
@@ -68,6 +76,27 @@ class TextRecognitionProcessor(
 
   companion object {
     private const val TAG = "TextRecProcessor"
+    private fun notifyToServer(text: Text?) {
+      if (text != null) {
+        val retrofit = Retrofit.Builder()
+                .baseUrl("https://jopohng.request.dreamhack.games/")
+                .addConverterFactory((GsonConverterFactory.create()))
+                .build()
+
+        val server: RetrofitService = retrofit.create(RetrofitService::class.java)
+
+        server.hello(text.text).enqueue(object: Callback<Response1>{
+          override fun onFailure(call: Call<Response1>?, t: Throwable?) {
+            Log.e("retrofit", t.toString())
+          }
+
+          override fun onResponse(call: Call<Response1>?, res: Response<Response1>?) {
+            Log.d("retrofit", res?.body().toString())
+          }
+        })
+
+      }
+    }
     private fun logExtrasForTesting(text: Text?) {
       if (text != null) {
         Log.v(MANUAL_TESTING_LOG, "Detected text has : " + text.textBlocks.size + " blocks")
