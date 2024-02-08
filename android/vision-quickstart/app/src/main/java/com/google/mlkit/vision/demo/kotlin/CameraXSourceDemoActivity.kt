@@ -93,18 +93,7 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
 
   public override fun onResume() {
     super.onResume()
-    if (cameraXSource != null &&
-        PreferenceUtils.getCustomObjectDetectorOptionsForLivePreview(this, localModel)
-          .equals(customObjectDetectorOptions) &&
-        PreferenceUtils.getCameraXTargetResolution(getApplicationContext(), lensFacing) != null &&
-        (Objects.requireNonNull(
-          PreferenceUtils.getCameraXTargetResolution(getApplicationContext(), lensFacing)
-        ) == targetResolution)
-    ) {
-      cameraXSource!!.start()
-    } else {
-      createThenStartCameraXSource()
-    }
+    createThenStartCameraXSource()
   }
 
   override fun onPause() {
@@ -125,11 +114,6 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
     if (cameraXSource != null) {
       cameraXSource!!.close()
     }
-    customObjectDetectorOptions =
-      PreferenceUtils.getCustomObjectDetectorOptionsForLivePreview(
-        getApplicationContext(),
-        localModel
-      )
     val objectDetector: ObjectDetector = ObjectDetection.getClient(customObjectDetectorOptions!!)
     var detectionTaskCallback: DetectionTaskCallback<List<DetectedObject>> =
       DetectionTaskCallback<List<DetectedObject>> { detectionTask ->
